@@ -22,6 +22,8 @@ public class HtmlParser {
 					.setLevel(java.util.logging.Level.OFF);
 			java.util.logging.Logger.getLogger("org.apache.http").setLevel(
 					java.util.logging.Level.OFF);
+			if (isInvalidUrl(url))
+				return;
 			// Here we use htmlunit to parse websites
 			WebClient webClient = new WebClient(BrowserVersion.CHROME);
 			webClient.getOptions().setUseInsecureSSL(true);
@@ -33,10 +35,6 @@ public class HtmlParser {
 			webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
 			webClient.getOptions().setTimeout(50000);
 			webClient.getOptions().setDoNotTrackEnabled(false);
-			if (!isValidUrl(url)) {
-				webClient.close();
-				return;
-			}
 			HtmlPage page = webClient.getPage(url);
 			// Wait for scripts loading
 			Thread.sleep(3000);
@@ -107,19 +105,16 @@ public class HtmlParser {
 		// Split by [\t\n\x0B\f\r]
 		String[] cookedText = bodyText.split("\\s");
 		for (int i = 0; i < cookedText.length; i++) {
-			if (cookedText[i].contains("@" + domainName)) {
+			if (cookedText[i].contains("@") && !cookedText[i].startsWith("@")) {
 				resultSet.add(cookedText[i]);
 			}
 		}
 	}
 
-	private boolean isValidUrl(String url) {
+	private boolean isInvalidUrl(String url) {
 		// Avoid any content-type except html
-		if (url.endsWith(".pdf") || url.endsWith(".rar")
-				|| url.endsWith(".mp3") || url.endsWith(".mp4")) {
-			return false;
-		} else
-			return true;
+		return (url.endsWith(".pdf") || url.endsWith(".rar")
+				|| url.endsWith(".mp3") || url.endsWith(".mp4"));
 	}
 
 	public static Set<String> getResults() {
